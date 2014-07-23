@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 import "os"
-import dump "./mysqldump"
+import dump "github.com/NOX73/go-mysql-test/mysqldump"
 
 func main () {
 

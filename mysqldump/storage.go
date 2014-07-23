@@ -12,6 +12,9 @@ type storage struct {
   userCh chan *user;
   saleCh chan *sale;
   doneCh chan bool;
+
+  usersCnt int
+  salesCnt int
 }
 
 func newStorage () *storage {
@@ -34,14 +37,6 @@ func (s *storage) start () {
     log.Fatal(err);
   }
 
-  defer func(){
-    err := zipFile.Close();
-
-    if err != nil {
-      log.Fatal(err);
-    }
-  }();
-
   archive := zip.NewWriter(zipFile)
 
   usersFile, err := archive.Create("users.csv")
@@ -49,36 +44,42 @@ func (s *storage) start () {
     log.Fatal(err);
   }
 
+  userCsv := csv.NewWriter(usersFile);
+  for u := range s.userCh {
+    s.usersCnt++;
+    err := userCsv.Write([]string{strconv.Itoa(u.id), u.name});
+    if err != nil { log.Fatal(err); }
+  }
+
+  userCsv.Flush();
+
+  s.doneCh <- true;
+
   salesFile, err := archive.Create("sales.csv")
   if err != nil {
     log.Fatal(err);
   }
 
-  userCsv := csv.NewWriter(usersFile);
   salesCsv := csv.NewWriter(salesFile);
-
-  for {
-    select {
-
-    case u, ok := <- s.userCh:
-      if ok {
-        userCsv.Write([]string{strconv.Itoa(u.id), u.name});
-      } else {
-        s.userCh = nil;
-      }
-    case sl, ok := <- s.saleCh:
-      if ok {
-        salesCsv.Write([]string{strconv.Itoa(sl.id), strconv.Itoa(sl.user_id), strconv.FormatFloat(sl.order_amount, 'f', 3, 64)});
-      } else {
-        s.saleCh = nil;
-      }
-    }
-
-    if s.saleCh == nil && s.userCh == nil {
-      break;
-    }
-
+  for sl := range s.saleCh {
+    s.salesCnt++;
+    err := salesCsv.Write([]string{strconv.Itoa(sl.id), strconv.Itoa(sl.user_id), strconv.FormatFloat(sl.order_amount, 'f', 3, 64)});
+    if err != nil { log.Fatal(err); }
   }
+
+  salesCsv.Flush();
+
+  archive.Close();
+  if err != nil {
+    log.Fatal(err);
+  }
+
+  err = zipFile.Close();
+  if err != nil {
+    log.Fatal(err);
+  }
+
+  log.Println("Done storage. Users:", s.usersCnt, "Sales:", s.salesCnt);
 
   s.doneCh <- true;
 }
@@ -92,10 +93,12 @@ func (s *storage) StoreSale (sl *sale) {
   s.saleCh <- sl
 }
 
-func (s *storage) Close() {
+func (s *storage) CloseUsers() {
   close(s.userCh)
+  <-s.doneCh
+}
+
+func (s *storage) CloseSales() {
   close(s.saleCh)
   <-s.doneCh
-
-  log.Println("Dump to CSV finished");
 }
