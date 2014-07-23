@@ -75,14 +75,15 @@ CREATE PROCEDURE dorepeat(p1 INT)
 delimiter ;
 
 
-LOCK TABLES `users`, `sales` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sales` DISABLE KEYS */;
+LOCK TABLES `users` WRITE, `sales` WRITE;
 
 CALL dorepeat(400);
 
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 /*!40000 ALTER TABLE `sales` ENABLE KEYS */;
+
 UNLOCK TABLES;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
