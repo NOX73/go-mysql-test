@@ -16,6 +16,10 @@ stop-mysql:
 	docker stop mysql1
 	docker stop mysql2
 
+start-mysql:
+	docker start mysql1
+	docker start mysql2
+
 clean:
 	docker rm -f mysql1
 	docker rm -f mysql2
