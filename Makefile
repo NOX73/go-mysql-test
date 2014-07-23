@@ -1,22 +1,26 @@
-setup: setup-mysql-servers
+MYSQL_PASS=12345
 
-setup-mysql-servers: pull-tatum-mysql build-mysql-docker
+help:
+	cat Makefile
 
-pull-tatum-mysql:
+setup: mysql-build deps mysql-run
+
+mysql-build:
 	git clone https://github.com/tutumcloud/tutum-docker-mysql.git
-
-build-mysql-docker:
 	cd tutum-docker-mysql && docker build -t tutum/mysql .
 
-run-mysql:
-	docker run -d --name mysql1 -p 3306:3306 tutum/mysql
-	docker run -d --name mysql2 -p 3307:3306 tutum/mysql
+mysql-run:
+	docker run -d --name mysql1 -p 3306:3306 -e MYSQL_PASS="$(MYSQL_PASS)" tutum/mysql
+	docker run -d --name mysql2 -p 3307:3306 -e MYSQL_PASS="$(MYSQL_PASS)" tutum/mysql
 
-stop-mysql:
+mysql-logs:
+	@((docker logs mysql1 && docker logs mysql2) | grep "uadmin")
+
+mysql-stop:
 	docker stop mysql1
 	docker stop mysql2
 
-start-mysql:
+mysql-start:
 	docker start mysql1
 	docker start mysql2
 
@@ -24,3 +28,8 @@ clean:
 	docker rm -f mysql1
 	docker rm -f mysql2
 
+run: 
+	go run main.go "admin:$(MYSQL_PASS)@tcp($(IP):3306)/hello" "admin:$(MYSQL_PASS)@tcp($(IP):3307)/hello"
+
+deps:
+	go get github.com/go-sql-driver/mysql
