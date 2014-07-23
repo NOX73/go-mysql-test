@@ -12,6 +12,4 @@ func main () {
   }
 
   dump.DumpFromServers(os.Args[1:])
-
-  fmt.Println("Finish");
 }
