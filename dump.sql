@@ -66,19 +66,25 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
+DROP PROCEDURE IF EXISTS dorepeat;
+delimiter //
+CREATE PROCEDURE dorepeat(p1 INT)
+     BEGIN
+       SET @x = 0;
+       REPEAT
+         SET @x = @x + 1;
+         INSERT INTO `users` (`name`) VALUES ("MIKe");
+       UNTIL @x > p1 END REPEAT;
+     END//
+
+delimiter ;
+
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-  SET p1 = 0;
-  loop1: LOOP
-    SET p1 = p1 + 1;
-    IF p1 < 40000 THEN
-      INSERT INTO `users` (`name`) VALUES (str_random('cccccccccc'));
-      ITERATE loop1;
-    END IF;
-    LEAVE loop1;
-  END LOOP loop1;
+CALL dorepeat(400);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
