@@ -3,7 +3,7 @@ MYSQL_PASS=12345
 help:
 	cat Makefile
 
-setup: mysql-build deps mysql-run
+setup: mysql-build deps mysql-run mysql-dump
 
 mysql-build:
 	git clone https://github.com/tutumcloud/tutum-docker-mysql.git
@@ -15,6 +15,18 @@ mysql-run:
 
 mysql-logs:
 	@((docker logs mysql1 && docker logs mysql2) | grep "uadmin")
+
+mysql-dump:
+	mysql -uadmin -p$(MYSQL_PASS) -h$(IP) -P3306 < ./sql/create_db.sql
+	mysql -uadmin -p$(MYSQL_PASS) -h$(IP) -P3306 hello < ./sql/fn_str_random_character.sql
+	mysql -uadmin -p$(MYSQL_PASS) -h$(IP) -P3306 hello < ./sql/fn_str_random.sql
+	mysql -uadmin -p$(MYSQL_PASS) -h$(IP) -P3306 hello < ./sql/dump.sql
+	mysql -uadmin -p$(MYSQL_PASS) -h$(IP) -P3307 < ./sql/create_db.sql
+	mysql -uadmin -p$(MYSQL_PASS) -h$(IP) -P3307 hello < ./sql/fn_str_random_character.sql
+	mysql -uadmin -p$(MYSQL_PASS) -h$(IP) -P3307 hello < ./sql/fn_str_random.sql
+	mysql -uadmin -p$(MYSQL_PASS) -h$(IP) -P3307 hello < ./sql/dump.sql
+
+
 
 mysql-stop:
 	docker stop mysql1

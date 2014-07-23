@@ -42,12 +42,6 @@ CREATE TABLE `sales` (
 -- Dumping data for table `sales`
 --
 
-LOCK TABLES `sales` WRITE;
-/*!40000 ALTER TABLE `sales` DISABLE KEYS */;
-INSERT INTO `sales` VALUES (1,1,15),(2,1,15.1);
-/*!40000 ALTER TABLE `sales` ENABLE KEYS */;
-UNLOCK TABLES;
-
 --
 -- Table structure for table `users`
 --
@@ -73,16 +67,22 @@ CREATE PROCEDURE dorepeat(p1 INT)
        SET @x = 0;
        REPEAT
          SET @x = @x + 1;
-         INSERT INTO `users` (`name`) VALUES ("MIKe");
+         INSERT INTO `users` (`name`) VALUES (str_random("ccccccc"));
+         INSERT INTO `sales` (`user_id`, `order_amount`) VALUES (@x,rand()*100), (@x, rand()*100);
        UNTIL @x > p1 END REPEAT;
      END//
 
 delimiter ;
 
-LOCK TABLES `users` WRITE;
+
+LOCK TABLES `users`, `sales` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
+/*!40000 ALTER TABLE `sales` DISABLE KEYS */;
+
 CALL dorepeat(400);
+
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
+/*!40000 ALTER TABLE `sales` ENABLE KEYS */;
 UNLOCK TABLES;
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
